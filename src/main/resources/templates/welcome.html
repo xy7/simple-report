@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+  <head>
+    <title>Good Thymes Virtual Grocery</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="http://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>
+		<script src="http://cdn.hcharts.cn/highcharts/highcharts.js"></script> 
+  </head>
+
+  <body>
+  	<p th:text="${name}">Welcome to our grocery store!</p>
+		<div>刷新时间：</div><div id="myDiv">wait for refresh</div>
+    <input id="submit" type="button" value="刷新数据" onclick="pic()" />
+		<div id="container" style="min-width:800px;height:400px"></div>
+  </body>
+	<script>
+	function pic() {
+			var xmlhttp;
+			if (window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari
+			  xmlhttp=new XMLHttpRequest();
+			} else{// code for IE6, IE5
+			  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			//xmlhttp.open("GET","/getDataTest?name=abc", false);
+			//xmlhttp.send();
+			//document.getElementById("myDiv").innerHTML=xmlhttp.responseText;
+			
+			xmlhttp.open("GET","/getData?date=2016-05-13", true);
+			xmlhttp.send();
+			var x;
+			var y;
+			xmlhttp.onreadystatechange=function(){
+				if (xmlhttp.readyState==4){
+					if(xmlhttp.status==200){
+						var text = xmlhttp.responseText;
+						var json = JSON.parse(text);
+						x = json['x'];
+						y = json['y'];
+						document.getElementById("myDiv").innerHTML=json['fresh_time'];
+						
+						$('#container').highcharts({
+					        title: {
+					            text: 'raw eeg power',
+					            x: -20 //center
+					        },
+					        subtitle: {
+					            text: 'from: mindware',
+					            x: -20
+					        },
+					        xAxis: {
+					            categories: x
+					        },
+					        yAxis: {
+					            title: {
+					                text: 'level'
+					            },
+					            plotLines: [{
+					                value: 0,
+					                width: 1,
+					                color: '#808080'
+					            }]
+					        },
+					        tooltip: {
+					            valueSuffix: ''
+					        },
+					        legend: {
+					            layout: 'vertical',
+					            align: 'right',
+					            verticalAlign: 'middle',
+					            borderWidth: 0
+					        },
+					        series: [{
+					            name: 'raw_eeg',
+					            data: y
+					        }]
+					    });
+					}
+				} 
+			};
+
+	    //setTimeout('pic()', 5*1000); 
+	};
+	
+	//pic();
+	
+	</script>
+</html>
