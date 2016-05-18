@@ -30,7 +30,7 @@ public class WebsocketController {
 
 	@MessageMapping("/rawEeg")
     //@SendTo("/topic/greetings")
-    public void greeting(HelloMessage message) throws Exception {
+    public void rawEeg(HelloMessage message) throws Exception {
         
         
         while(true){

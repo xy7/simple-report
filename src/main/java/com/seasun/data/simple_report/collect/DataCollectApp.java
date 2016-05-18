@@ -1,6 +1,7 @@
 package com.seasun.data.simple_report.collect;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -115,6 +116,7 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("raw", raw);
 		paramMap.put("index", index);
 		paramMap.put("time", time.toString().replace("T", " "));
+		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 		rawEegQueue.put(paramMap);
 		jdbc.update("insert into raw_eeg(raw_eeg, index_, receive_time) values(:raw, :index, :time)", paramMap);
 	}
