@@ -27,13 +27,14 @@ public class SimpleReportApp {
 	public static void main(String[] args) throws Exception {
 		ApplicationContext ctx = SpringApplication.run(SimpleReportApp.class, args);
 		
-		DataCollectApp dca = ctx.getBean(DataCollectApp.class);
-		
-		int i = 0;
-		while(true){
-			dca.rawEegEvent(LocalDateTime.now(), (++i)%100, 1);
-			Thread.sleep(1000);
-		}
+		//test
+//		DataCollectApp dca = ctx.getBean(DataCollectApp.class);
+//		
+//		int i = 0;
+//		while(true){
+//			dca.rawEegEvent(LocalDateTime.now(), (++i)%100, 1);
+//			Thread.sleep(1000);
+//		}
 	}
 
 }

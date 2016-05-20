@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+  <head>
+    <title>脑波历史数据</title>
+		<meta th:replace="layout_header" />
+  </head>
+
+  <body>
+  	<div th:replace="layout_page_header::content"></div>
+ 
+ 		<div class="container-fluid">
+ 			<div class="row">
+ 			  <label class="col-md-1 control-label">开始时间:</label>
+				<input id="start" class="col-md-2" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"></input>
+				<label class="col-md-1 control-label">结束时间:</label>
+	    	<input id="end" class="col-md-2" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"></input>
+	    	<input id="submitEsence" class="col-md-1" type="button" value="查询" onclick="esencePic()" />
+ 			</div>
+		  <div id="containerEsence"  style="min-width:800px;height:400px"></div>
+ 		</div>
+ 		
+ 		<script>
+ 			$("#start").val(laydate.now(-30));
+ 			$("#end").val(laydate.now(1));
+ 		</script>
+  </body>
+</html>

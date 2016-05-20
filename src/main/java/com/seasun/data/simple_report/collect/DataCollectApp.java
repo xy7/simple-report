@@ -65,7 +65,7 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("attention", attentionLevel);
 		paramMap.put("meditation", meditationLevel);
 		paramMap.put("time", time.toString().replace("T", " "));
-		jdbc.update("insert into esense(attention, meditation, receive_time) values(:attention, :attention, :time)", paramMap);
+		jdbc.update("insert into esense(attention, meditation, receive_time) values(:attention, :meditation, :time)", paramMap);
 	}
 	
 

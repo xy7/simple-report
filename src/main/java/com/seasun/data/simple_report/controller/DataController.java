@@ -8,24 +8,36 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.alibaba.fastjson.JSONObject;
+import com.seasun.data.simple_report.base.MaxDropQueue;
+
 @Controller
 public class DataController {
 	
+	@RequestMapping("/history")
+	public String index(Map<String, Object> model) {
+		model.put("name", "mind ware data figure");
+		return "history";
+    }
+	
+	@RequestMapping("/realtime")
+	public String home(Map<String, Object> model) {
+		return "realtime";
+    }
+	
+	//历史数据
 	@Autowired
 	private NamedParameterJdbcTemplate jdbc;
 
-	@RequestMapping("/index")
-	public String home(Map<String, Object> model) {
-		model.put("name", "mind ware data figure");
-		return "welcome";
-    }
-	
 	@RequestMapping("/getEsenceData")
 	public @ResponseBody Map<String, Object> getEsenceData(
 			@RequestParam(value = "start", required = false) String start
@@ -76,34 +88,28 @@ public class DataController {
 		return res;
 	}
 	
-	//获取最近的数据，date为最后一次查询到的最新时间
-	@RequestMapping("/getNewData")
-	public @ResponseBody Map<String, Object> getNewData(@RequestParam(value = "date", required = false) String date){
-		Map<String, Object> paramMap = new HashMap<>();
-		paramMap.put("date", date);
-		String sql = "select * from raw_eeg where receive_time > :date order by receive_time, index_";
-		List<Map<String, Object>> dbRes = jdbc.queryForList(sql, paramMap);
-		Map<String, Object> res = new HashMap<>();
-		List<String> x = new ArrayList<>();
-		List<Double> y = new ArrayList<>();
-		int size = dbRes.size();
-		for(int i=0;i<size;i++){
-			Map<String, Object> e = dbRes.get(i);
-			x.add(e.getOrDefault("receive_time", "0").toString());
-			y.add(Double.parseDouble(e.getOrDefault("raw_eeg", "0").toString()));
-			if(i == size - 1)
-				res.put("fresh_time", e.getOrDefault("receive_time", "0").toString());
-		}
-		
-		res.put("x", x);
-		res.put("y", y);
-		
-		return res;
-	}
 	
-	@RequestMapping("/getDataTest")
-	public @ResponseBody String getDataTest(@RequestParam(value = "name", required = false) String name){
-		return name + "----123";
-	}
+	//实时数据
+	@Autowired
+	@Qualifier("rawEegQueue")
+	public MaxDropQueue<Map<String, Object>> rawEegQueue;
+	
+	@Autowired
+	private SimpMessagingTemplate template;
+
+	@MessageMapping("/rawEeg")
+    //@SendTo("/topic/greetings")
+    public void rawEeg() throws Exception {
+
+        while(true){
+        	Map<String, Object> paramMap = rawEegQueue.take();
+
+        	JSONObject json = new JSONObject(paramMap);
+        	System.out.println("rawEegQueue: " + json);
+            template.convertAndSend("/realDataResp/rawEeg", json);
+            
+            Thread.sleep(1000); // simulated delay
+        }
+    }
 	
 }

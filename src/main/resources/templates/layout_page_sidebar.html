@@ -1,0 +1,96 @@
+<html>
+<meta charset="utf-8" />
+
+<aside id="analytics-menu"  th:fragment="content">
+  <button type="button" class="menu-toggle btn btn-default"><span class="glyphicon glyphicon-list"></span></button>
+  <nav class="sidebar">
+    <ul class="menu nav">
+      <li>
+        <a class="title user" href="#"><i class="fa fa-user"></i> 用户分析<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="realtime-stats"><a href="/ui/analytics/">实时概况</a></li>
+          <li class="new-stats"><a href="/ui/analytics/new">新增分析</a></li>
+          <li class="active-stats"><a href="/ui/analytics/active">活跃分析</a></li>
+          <li class="retention-stats"><a href="/ui/analytics/retention">留存分析</a></li>
+          <li class="pay-stats"><a href="/ui/analytics/pay">付费分析</a></li>
+          <li class="duration-stats"><a href="/ui/analytics/duration">时长分析</a></li>
+          <li class="level-stats"><a href="/ui/analytics/level">等级分析</a></li>
+          <li class="lost-stats"><a href="/ui/analytics/lost">流失用户</a></li>
+          <li class="return-stats"><a href="/ui/analytics/return">回归用户</a></li>
+          <li class="online-stats"><a href="/ui/analytics/online">在线用户</a></li>
+          <li class="launch-stats"><a href="/ui/analytics/launch">启动次数</a></li>
+          <li class="ltv-stats"><a href="/ui/analytics/ltv">用户周期价值</a></li>
+        </ul>
+      </li>
+      <li>
+        <a class="title" href="#"><i class="fa fa-cny"></i> 收益分析<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="income-stats"><a href="/ui/analytics/income">收入统计</a></li>
+          <li class="recharge-stats"><a href="/ui/analytics/recharge">充值统计</a></li>
+          <li class="consumption-stats"><a href="/ui/analytics/consumption">消费统计</a></li>
+          <li class="payrate-stats"><a href="/ui/analytics/payrate">付费率</a></li>
+        </ul>
+      </li>
+      <li>
+        <a class="title" href="#"><i class="fa fa-users"></i> 市场推广<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="adsheets-stats"><a href="/ui/analytics/adsheets">广告单列表</a></li>
+          <li class="adsheets-effect-stats"><a href="/ui/analytics/adsheets_effect">广告单效果</a></li>
+          <li class="adgroups-stats"><a href="/ui/analytics/adgroups">广告组列表</a></li>
+          <li class="adgroups-effect-stats"><a href="/ui/analytics/adgroups_effect">广告组效果</a></li>
+        </ul>
+      </li>
+      <li>
+        <a class="title" href="#"><i class="fa fa-gear"></i> 自定义事件<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="funnels-stats"><a href="/ui/analytics/funnels">查看漏斗列表</a></li>
+          <li class="event-funnel-stats"><a href="/ui/analytics/event_funnel">事件转化漏斗</a></li>
+        </ul>
+      </li>
+       <li>
+        <a class="title" href="#"><i class="fa fa-archive"></i> 崩溃分析<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="crashes-stats"><a href="/ui/analytics/crashes">崩溃分析</a></li>
+        </ul>
+      </li>
+      <li>
+        <a class="title" href="#"><i class="fa fa-user-md"></i> 体验分析<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="nettimeout-stats"><a href="/ui/analytics/nettimeout">网络延迟分析</a></li>
+        </ul>
+      </li>
+      <li>
+        <a class="title user" href="#"><i class="fa fa-tags"></i> 关卡统计<span class="glyphicon arrow"></span></a>
+          <ul class="nav submenu">
+            <li class="gameleveltime-stats"><a href="/ui/analytics/game_level_time">关卡战斗时间</a></li>
+            <li class="gamelevelnumtimes-stats"><a href="/ui/analytics/game_level_numtimes">关卡进入次数</a></li>
+            <li class="gamelevelsuccpercent-stats"><a href="/ui/analytics/game_level_succpc">关卡成功比率</a></li>
+          </ul>
+      </li>
+      <li>
+        <a class="title user" href="#"><i class="fa fa-tags"></i> 分享分析<span class="glyphicon arrow"></span></a>
+          <ul class="nav submenu">
+            <li class="share-total-overview-stats" style="display:none"><a href="/ui/analytics/share_total_overview">总体概要</a></li>
+            <li class="share-event-overview-stats"><a href="/ui/analytics/share_event_overview">趋势分析</a></li>
+            <li class="share-daily-channel-stats"><a href="/ui/analytics/share_daily_channel">分享渠道每日趋势</a></li>
+            <li class="share-daily-user-stats"><a href="/ui/analytics/share_daily_user">分享用户分布</a></li>
+            <!-- 
+            <li class="share-daily-push-click-stats"><a href="/ui/analytics/share_daily_push_click">分享回流率分析</a></li>
+            <li class="share-push-click-channel-stats"><a href="/ui/analytics/share_push_click_channel">分享渠道的分享回流率分布</a></li>
+             -->
+            <li class="share-channel-percent-scope-stats"><a href="/ui/analytics/share_channel_percent_scope">分享渠道流量分布</a></li>
+            <li class="share-timeinterval-scope-stats"><a href="/ui/analytics/share_timeinterval_scope">用户活跃时段分布</a></li>
+          </ul>
+      </li>
+      <li>
+        <a class="title" href="#"><i class="fa fa-wrench"></i> 调试日志<span class="glyphicon arrow"></span></a>
+        <ul class="nav submenu">
+          <li class="debuglog-stats"><a href="/ui/analytics/debuglog"><i class="fa fa-wrench"></i>调试日志</a></li>
+        </ul>
+      </li>
+    </ul>
+   </nav>
+</aside>
+
+
+</html>

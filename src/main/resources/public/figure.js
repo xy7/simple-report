@@ -59,6 +59,7 @@ function rawEegPic(){
 		$("#myDiv").html(json.fresh_time);
 		$('#containerRawEeg').highcharts({
 			chart: {zoomType: 'x'},
+			credits: {enabled: false},
 	        title: {
 	            text: 'raw eeg power',
 	            x: -20 //center
@@ -102,111 +103,10 @@ function rawEegPic(){
 	}, "json");
 };
 
-var lastNewDate;
-function getNewData(){
-	$.get("/getData"
-			, {date:"2016-05-13"}
-			, function(json){
-				
-			}
-			, "json")
-}
-
-function dymPic() {                                                                     
-    $(document).ready(function() {                                                  
-        Highcharts.setOptions({                                                     
-            global: {                                                               
-                useUTC: true                                                       
-            }                                                                       
-        });                                                                         
-        
-        var lastTime;
-        var chart;                                                                  
-        $('#container2').highcharts({                                                
-            chart: {                                                                
-                type: 'spline',                                                     
-                animation: Highcharts.svg, // don't animate in old IE               
-                marginRight: 10,                                                    
-                events: {                                                           
-                    load: function() {                                              
-                                                                                    
-                        // set up the updating of the chart each second             
-                        var series = this.series[0];                                
-                        setInterval(function() {  
-                        	
-                        	$.get("/getNewData"
-                        			, {date: lastTime}
-                        			, function(json){
-                        				lastTime = json.fresh_time;
-                        				var x = (new Date()).getTime(),       
-                                        y = Math.random();
-                        				series.addPoint([x, y], true, true);  
-                        			}
-                        			, "json")
-                          
-                        }, 1000);                                                   
-                    }                                                               
-                }                                                                   
-            },                                                                      
-            title: {                                                                
-                text: 'Live random data'                                            
-            },                                                                      
-            xAxis: {                                                                
-                type: 'datetime',                                                   
-                tickPixelInterval: 150
-            },                                                                      
-            yAxis: {                                                                
-                title: {                                                            
-                    text: 'Value'                                                   
-                },                                                                  
-                plotLines: [{                                                       
-                    value: 0,                                                       
-                    width: 1,                                                       
-                    color: '#808080'                                                
-                }]                                                                
-            },                                                                      
-            tooltip: {                                                              
-                formatter: function() {                                             
-                        return '<b>'+ this.series.name +'</b><br/>'+                
-                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +'<br/>'+
-                        Highcharts.numberFormat(this.y, 2);                         
-                }                                                                   
-            },                                                                      
-            legend: {                                                               
-                enabled: false                                                      
-            },                                                                      
-            exporting: {                                                            
-                enabled: false                                                      
-            },                                                                      
-            series: [{                                                              
-                name: 'Random data',                                                
-                data: (function() {                                                 
-                    // generate an array of random data                             
-                    var data = [],                                                  
-                        time = (new Date()).getTime(),                              
-                        i;                                                          
-                                                                                    
-                    for (i = -19; i <= 0; i++) {                                    
-                        data.push({                                                 
-                            x: time + i * 1000,                                     
-                            y: Math.random()                                        
-                        });                                                         
-                    }                                                               
-                    return data;                                                    
-                })()                                                                
-            }]                                                                      
-        });                                                                         
-    });                                                                             
-                                                                                    
-};
-
-
-
 function setConnected(connected) {
     document.getElementById('connect').disabled = connected;
     document.getElementById('disconnect').disabled = !connected;
-    document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
-    document.getElementById('response').innerHTML = '';
+    document.getElementById('reqData').disabled = !connected;
 }
 
 var stompClient = null;
@@ -226,6 +126,7 @@ function connect() {
     		seriesGlobal.addPoint([x, y], true, true);
     		console.log(seriesGlobal.data);
         });
+        reqData();
     });
 }
 
@@ -249,9 +150,10 @@ function rawEegDymPic(){
 	                	seriesGlobal = this.series[0];                                                                                                           
 	                }                                                               
 	            }                                                                   
-	        },                                                                      
+	        },
+	        credits: {enabled: false},
 	        title: {                                                                
-	            text: 'Live random data'                                            
+	            text: 'raw eeg'                                            
 	        },                                                                      
 	        xAxis: {                                                                
 	            type: 'datetime',                                                   
@@ -288,7 +190,7 @@ function rawEegDymPic(){
 	                var time = (new Date()).getTime();
 	                var i;                                                          
 	                                                                                
-	                for (i = -19; i <= -1; i++) {                                    
+	                for (i = -100; i <= -1; i++) {                                    
 	                    data.push({                                                 
 	                        x: time + i * 1000,                                     
 	                        y: 0                                        
@@ -319,9 +221,8 @@ function disconnect() {
     console.log("Disconnected");
 }
 
-function sendName() {
-    var name = document.getElementById('name').value;
-    stompClient.send("/realDataReq/rawEeg", {}, JSON.stringify({ 'name': name }));
+function reqData() {
+    stompClient.send("/realDataReq/rawEeg", {}, JSON.stringify({ "name": "" }));
 }
 
 function showGreeting(message) {
