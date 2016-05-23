@@ -5,11 +5,12 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -24,14 +25,9 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 	@Autowired
 	public NamedParameterJdbcTemplate jdbc;
 	
-	@Autowired
-	@Qualifier("signalQueue")
-	public MaxDropQueue<Map<String, Object>> signal;
+	@Resource(name="allTypeQueues")
+	public Map<String, MaxDropQueue<Map<String, Object> > > queues;
 	
-	@Autowired
-	@Qualifier("rawEegQueue")
-	public MaxDropQueue<Map<String, Object>> rawEegQueue;
-
 	public void setup() {
 		
 		/*  //目前有问题
@@ -54,7 +50,7 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		Map<String, Object> paramMap = new HashMap<>(2);
 		paramMap.put("sig", sig);
 		paramMap.put("time", time.toString().replace("T", " "));
-		signal.put(paramMap);
+		queues.get("signal").put(paramMap);
 		jdbc.update("insert into poor_signal(signal_level, receive_time) values(:sig, :time)", paramMap);
 	}
 	
@@ -65,6 +61,8 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("attention", attentionLevel);
 		paramMap.put("meditation", meditationLevel);
 		paramMap.put("time", time.toString().replace("T", " "));
+		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+		queues.get("esense").put(paramMap);
 		jdbc.update("insert into esense(attention, meditation, receive_time) values(:attention, :meditation, :time)", paramMap);
 	}
 	
@@ -75,6 +73,8 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		Map<String, Object> paramMap = new HashMap<>();
 		paramMap.put("blinkStrength", blinkStrength);
 		paramMap.put("time", time.toString().replace("T", " "));
+		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+		queues.get("blink").put(paramMap);
 		jdbc.update("insert into blink(blink_strength, receive_time) values(:blinkStrength, :time)", paramMap);
 	}
 
@@ -102,6 +102,8 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("low_gamma", low_gamma);
 		paramMap.put("mid_gamma", mid_gamma);
 		paramMap.put("time", time.toString().replace("T", " "));
+		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+		queues.get("eeg").put(paramMap);
 		jdbc.update("insert into eeg_power(delta, theta, low_alpha, high_alpha, low_beta"
 				+ ", high_beta, low_gamma, mid_gamma"
 				+ " , receive_time) values(:delta, :theta, :low_alpha, :high_alpha, :low_beta"
@@ -117,7 +119,7 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("index", index);
 		paramMap.put("time", time.toString().replace("T", " "));
 		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-		rawEegQueue.put(paramMap);
+		queues.get("rawEeg").put(paramMap);
 		jdbc.update("insert into raw_eeg(raw_eeg, index_, receive_time) values(:raw, :index, :time)", paramMap);
 	}
 	

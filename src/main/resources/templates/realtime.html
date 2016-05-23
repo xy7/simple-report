@@ -7,16 +7,17 @@
 <body onload="lastRun()">
 	<div th:replace="layout_page_header::content"></div>
 	<div>
-			<div id="containerRawEeg" class="container-fluid" style="min-width:800px;height:400px"></div>
-	    <div>
-	        <button id="connect" name="连接" onclick="rawEegDymPic();connect();">Connect</button>
-	        <button id="disconnect" name="断开" disabled="disabled" onclick="disconnect();">Disconnect</button>
-	        <button id="reqData" onclick="reqData();">重新获取数据</button>
-	    </div>
-	    
+		<div id="containerEsense" class="container-fluid" style="min-width:800px;height:400px"></div>
+		<div id="containerRawEeg" class="container-fluid" style="min-width:800px;height:400px"></div>
+    <div>
+        <button id="connect" name="连接" onclick="rawEegDymPic();connect();">Connect</button>
+        <button id="disconnect" name="断开" disabled="disabled" onclick="disconnect();">Disconnect</button>
+        <button id="reqData" onclick="reqData(&quot;rawEeg&quot;);">重新获取数据</button>
+    </div>
 	</div>
 	<script>
 			function lastRun(){
+				esenseDymPic();
 				rawEegDymPic();
 				disconnect();
 				connect();

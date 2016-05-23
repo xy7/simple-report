@@ -2,17 +2,20 @@ package com.seasun.data.simple_report.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,7 +25,9 @@ import com.seasun.data.simple_report.base.MaxDropQueue;
 
 @Controller
 public class DataController {
+	private static final Log log = LogFactory.getLog(DataController.class);
 	
+	//页面请求
 	@RequestMapping("/history")
 	public String index(Map<String, Object> model) {
 		model.put("name", "mind ware data figure");
@@ -69,10 +74,13 @@ public class DataController {
 	
 	@RequestMapping("/getRawEegData")
 	public @ResponseBody Map<String, Object> getRawEegData(
-			@RequestParam(value = "date", required = false) String date){
+			@RequestParam(value = "start", required = false) String start
+			, @RequestParam(value = "end", required = false) String end){
 		Map<String, Object> paramMap = new HashMap<>();
-		paramMap.put("date", date);
-		String sql = "select * from raw_eeg where DATE_FORMAT(receive_time, '%Y-%m-%d') = :date "
+		paramMap.put("start", start);
+		paramMap.put("end", end);
+		String sql = "select * from raw_eeg where receive_time >= :start "
+				+ " and receive_time <= :end"
 				+ " order by receive_time, index_";
 		List<Map<String, Object>> dbRes = jdbc.queryForList(sql, paramMap);
 		Map<String, Object> res = new HashMap<>();
@@ -85,28 +93,36 @@ public class DataController {
 		res.put("x", x);
 		res.put("y", y);
 		res.put("fresh_time", LocalDateTime.now().toString());
+		res.put("code", 0);
 		return res;
 	}
 	
 	
 	//实时数据
-	@Autowired
-	@Qualifier("rawEegQueue")
-	public MaxDropQueue<Map<String, Object>> rawEegQueue;
+	@Resource(name="allTypeQueues")
+	public Map<String, MaxDropQueue<Map<String, Object> > > queues;
 	
 	@Autowired
 	private SimpMessagingTemplate template;
 
-	@MessageMapping("/rawEeg")
+	@MessageMapping("/type")
     //@SendTo("/topic/greetings")
-    public void rawEeg() throws Exception {
+    public void getRealtimeData(@RequestParam String type) throws Exception {
+
+		MaxDropQueue<Map<String, Object>> queue = queues.get(type);
+		log.info("getRealtimeData type: " + type);
+		if(queue == null){
+			log.error("queue is null");
+			return;
+		}
+		log.info("queue size: " + queue.size());
 
         while(true){
-        	Map<String, Object> paramMap = rawEegQueue.take();
+        	Map<String, Object> paramMap = queue.take();
 
         	JSONObject json = new JSONObject(paramMap);
-        	System.out.println("rawEegQueue: " + json);
-            template.convertAndSend("/realDataResp/rawEeg", json);
+        	System.out.println("queue: " + json);
+            template.convertAndSend("/realDataResp/" + type, json);
             
             Thread.sleep(1000); // simulated delay
         }
