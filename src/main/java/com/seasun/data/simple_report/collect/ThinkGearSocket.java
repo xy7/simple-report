@@ -64,7 +64,7 @@ public class ThinkGearSocket implements Runnable {
 		return VERSION;
 	}
 
-	public void start() throws ConnectException {
+	public void start() throws Exception {
 
 		try {
 			neuroSocket = new Socket("127.0.0.1", 13854);
@@ -72,9 +72,9 @@ public class ThinkGearSocket implements Runnable {
 			// neuroSocket.setKeepAlive(true);
 		} catch (ConnectException e) {
 			// e.printStackTrace();
-			System.out.println("Oi plonker! Is ThinkkGear running?");
+			log.error("Oi plonker! Is ThinkkGear running?");
 			running = false;
-			throw e;
+			throw new RuntimeException("TGC did not open!!!");
 		} catch (UnknownHostException e) {
 			log.error(e);
 		} catch (IOException e2) {
@@ -84,42 +84,31 @@ public class ThinkGearSocket implements Runnable {
 		try {
 			inStream = neuroSocket.getInputStream();
 			outStream = neuroSocket.getOutputStream();
-			stdIn = new BufferedReader(new InputStreamReader(neuroSocket.getInputStream()));
+			stdIn = new BufferedReader(new InputStreamReader(neuroSocket.getInputStream()), 32);
 			running = true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(e);
+			return;
+		} catch (NullPointerException e2){
+			log.error("tgc needed: " );
+			return;
 		}
 
 		if (appName != "" && appKey != "") {
 			JSONObject appAuth = new JSONObject();
-			try {
-				appAuth.put("appName", appName);
-			} catch (JSONException e1) {
-				log.error(e1);
-			}
-			try {
-				appAuth.put("appKey", appKey);
-			} catch (JSONException e1) {
-				log.error(e1);
-			}
-			// throws some error
+			appAuth.put("appName", appName);
+			appAuth.put("appKey", appKey);
 			sendMessage(appAuth.toString());
 			log.info("appAuth" + appAuth);
 		}
 
+	
 		JSONObject format = new JSONObject();
-		try {
-			format.put("enableRawOutput", true);
-		} catch (JSONException e) {
-			log.error(e);
-		}
-		try {
-			format.put("format", "Json");
-		} catch (JSONException e) {
-			log.error(e);
-		}
-		// System.out.println("format "+format);
+		format.put("enableRawOutput", true);
+		format.put("format", "Json");
 		sendMessage(format.toString());
+		
+
 		t = new Thread(this);
 		t.start();
 
@@ -162,6 +151,7 @@ public class ThinkGearSocket implements Runnable {
 					while ((userInput = stdIn.readLine()) != null) {
 
 						LocalDateTime ldt = LocalDateTime.now();
+						//log.info(ldt + " : " + userInput);
 
 						String[] packets = userInput.split("/\r/");
 						for (int s = 0; s < packets.length; s++) {
@@ -215,7 +205,7 @@ public class ThinkGearSocket implements Runnable {
 		}
 		if (data.containsKey("eegPower")) {
 			haveValidData = true;
-			JSONObject eegPower = JSON.parseObject("eegPower");
+			JSONObject eegPower = data.getJSONObject("eegPower");
 			eventHandle.eegPowerEvent(time
 					, eegPower.getIntValue("delta"), eegPower.getIntValue("theta")
 					, eegPower.getIntValue("lowAlpha"), eegPower.getIntValue("highAlpha")

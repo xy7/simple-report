@@ -121,10 +121,10 @@ public class DataController {
         	Map<String, Object> paramMap = queue.take();
 
         	JSONObject json = new JSONObject(paramMap);
-        	System.out.println("queue: " + json);
+        	log.debug(type + " queue out: " + json);
             template.convertAndSend("/realDataResp/" + type, json);
             
-            Thread.sleep(1000); // simulated delay
+            //Thread.sleep(1000); // simulated delay
         }
     }
 	

@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.seasun.data.simple_report.base.MaxDropQueue;
+import com.seasun.data.simple_report.base.Utils;
 
 @Component
 public class DataCollectApp implements EventHandle, InitializingBean{
@@ -28,20 +29,15 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 	@Resource(name="allTypeQueues")
 	public Map<String, MaxDropQueue<Map<String, Object> > > queues;
 	
-	public void setup() {
+	public void setup() throws Exception {
 		
-		/*  //目前有问题
-		String appName = "seasun_raw_data_collect_1";
-		String appKey = util.Utils.SHA1(appName);
-		ThinkGearSocket neuroSocket = new ThinkGearSocket(this, appName, appKey);
-		*/
+		//目前有问题
+//		String appName = "seasun_raw_data_collect_1";
+//		String appKey = Utils.SHA1(appName);
+//		ThinkGearSocket neuroSocket = new ThinkGearSocket(this, appName, appKey);
+		
 		ThinkGearSocket neuroSocket = new ThinkGearSocket(this);
-		try {
-			neuroSocket.start();
-		} catch (Exception e) {
-			log.error(e);
-			log.error("Is ThinkGear running??");
-		}
+		neuroSocket.start();
 	}
 
 	@Override
@@ -119,7 +115,8 @@ public class DataCollectApp implements EventHandle, InitializingBean{
 		paramMap.put("index", index);
 		paramMap.put("time", time.toString().replace("T", " "));
 		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-		queues.get("rawEeg").put(paramMap);
+		if(raw > -2048 && raw < 2047)
+			queues.get("rawEeg").put(paramMap);
 		jdbc.update("insert into raw_eeg(raw_eeg, index_, receive_time) values(:raw, :index, :time)", paramMap);
 	}
 	

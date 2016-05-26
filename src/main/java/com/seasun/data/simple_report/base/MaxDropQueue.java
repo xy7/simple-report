@@ -2,7 +2,11 @@ package com.seasun.data.simple_report.base;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class MaxDropQueue<E>{
+	private static final Log log = LogFactory.getLog(MaxDropQueue.class);
 	
 	private int capacity = 100;
 
@@ -28,14 +32,14 @@ public class MaxDropQueue<E>{
 		while(queue.size() >= capacity){
 			try {
 				E dopE = queue.take();
-				//System.out.println("				drop: " + dopE);
+				log.debug("			queue is full, have to drop: " + dopE);
 				break;
 			} catch (InterruptedException e1) {
-				System.out.println(e1);
+				log.info(e1);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException e2) {
-					System.out.println(e2);
+					log.info(e2);
 				}
 			}
 		}
@@ -44,11 +48,11 @@ public class MaxDropQueue<E>{
 				queue.put(e);
 				break;
 			} catch (InterruptedException e1) {
-				e1.printStackTrace();
+				log.info(e1);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException e2) {
-					System.out.println(e2);
+					log.info(e2);
 				}
 			}
 			
