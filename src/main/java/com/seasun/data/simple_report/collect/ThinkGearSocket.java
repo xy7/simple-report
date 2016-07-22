@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import processing.core.PApplet;
 
@@ -21,6 +24,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
+@Component
 public class ThinkGearSocket implements Runnable {
 	private static final Log log = LogFactory.getLog(ThinkGearSocket.class);
 
@@ -32,7 +36,11 @@ public class ThinkGearSocket implements Runnable {
 
 	public String appName = "";
 	public String appKey = "";
-	public EventHandle eventHandle;
+	
+	@Autowired(required=true)
+	@Qualifier("dataCollectApp")
+	private EventHandle eventHandle;
+	
 	private Thread t;
 
 	private int index = 0;
@@ -40,6 +48,9 @@ public class ThinkGearSocket implements Runnable {
 	public final static String VERSION = "1.0";
 
 	private boolean running = true;
+	
+	public ThinkGearSocket() {
+	}
 
 	public ThinkGearSocket(EventHandle eventHandle) {
 		this.eventHandle = eventHandle;
@@ -94,7 +105,7 @@ public class ThinkGearSocket implements Runnable {
 			return;
 		}
 
-		if (appName != "" && appKey != "") {
+		if (appName != "" && appKey != "") {//目前有问题
 			JSONObject appAuth = new JSONObject();
 			appAuth.put("appName", appName);
 			appAuth.put("appKey", appKey);
@@ -114,7 +125,6 @@ public class ThinkGearSocket implements Runnable {
 
 	}
 
-	@SuppressWarnings("deprecation")
 	public void stop() {
 
 		if (running) {
@@ -189,19 +199,19 @@ public class ThinkGearSocket implements Runnable {
 			if (index == 512) {
 				index = 0;
 			}
-			eventHandle.rawEegEvent(time, data.getIntValue("rawEeg"), index);
+			eventHandle.rawEegEvent(time, data.getIntValue("rawEeg"), index, "");
 			index++;
 		}
 
 		if (data.containsKey("blinkStrength")) {
 			haveValidData = true;
-			eventHandle.blinkEvent(time, data.getIntValue("blinkStrength"));
+			eventHandle.blinkEvent(time, data.getIntValue("blinkStrength"), "");
 		}
 
 		if (data.containsKey("eSense")) {
 			haveValidData = true;
 			JSONObject esense = data.getJSONObject("eSense");
-			eventHandle.esenseEvent(time, esense.getIntValue("attention"), esense.getIntValue("meditation"));
+			eventHandle.esenseEvent(time, esense.getIntValue("attention"), esense.getIntValue("meditation"), "");
 		}
 		if (data.containsKey("eegPower")) {
 			haveValidData = true;
@@ -210,12 +220,12 @@ public class ThinkGearSocket implements Runnable {
 					, eegPower.getIntValue("delta"), eegPower.getIntValue("theta")
 					, eegPower.getIntValue("lowAlpha"), eegPower.getIntValue("highAlpha")
 					, eegPower.getIntValue("lowBeta"), eegPower.getIntValue("highBeta")
-					, eegPower.getIntValue("lowGamma"), eegPower.getIntValue("highGamma"));
+					, eegPower.getIntValue("lowGamma"), eegPower.getIntValue("highGamma"), "");
 		}
 
 		if (data.containsKey("poorSignalLevel")) {
 			haveValidData = true;
-			eventHandle.poorSignalEvent(time, data.getIntValue("poorSignalLevel"));
+			eventHandle.poorSignalEvent(time, data.getIntValue("poorSignalLevel"), "");
 		}
 
 		if (!haveValidData) {

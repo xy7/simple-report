@@ -1,9 +1,23 @@
+function getDeviceIds(){
+	$.get("/getDeviceIds", {}
+		, function(json) {
+			var ids = json.ids;
+	
+			for(var i in ids){
+				$("#device_selector").append("<option>"+ids[i]+"</option>");
+			}
+
+			//$("#device_selector").append("<option>Text</option>");
+		}, "json");
+}
+
 //历史数据绘图
 function esensePic() {
 	var time = new Date();
 	$.get("/getEsenceData", {
 		start : $("#start").val(),
-		end : $("#end").val()
+		end : $("#end").val(),
+		deviceId: $("#device_selector").find("option:selected").text()
 	}, function(json) {
 		$('#containerEsense').highcharts({
 			chart : {
@@ -174,7 +188,8 @@ function disconnect() {
 }
 
 function reqData(type) {
-	stompClient.send("/realDataReq/type", {}, type);
+	var deviceId = $("#device_selector").find("option:selected").text();
+	stompClient.send( "/realDataReq/type", {}, JSON.stringify({"deviceId":deviceId, "type":type}) );
 }
 
 function rawEegDymPic() {

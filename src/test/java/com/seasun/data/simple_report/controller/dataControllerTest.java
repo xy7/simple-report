@@ -18,7 +18,12 @@ public class dataControllerTest {
 	
 	@Test
 	public void getEsenceDataTest() {
-		System.out.println(dc.getEsenceData("2016-05-12 00:00:00", "2016-05-14 00:00:00"));
+		System.out.println(dc.getEsenceData("2016-05-12 00:00:00", "2016-05-14 00:00:00", ""));
+	}
+	
+	@Test
+	public void getDeviceIdsTest(){
+		System.out.println(dc.getDeviceIds());
 	}
 
 }

@@ -10,7 +10,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 import com.seasun.data.simple_report.base.MaxDropQueue;
+import com.seasun.data.simple_report.collect.ComRead;
 import com.seasun.data.simple_report.collect.DataCollectApp;
+import com.seasun.data.simple_report.collect.ThinkGearSocket;
 
 @SpringBootApplication
 public class SimpleReportApp {
@@ -28,6 +30,8 @@ public class SimpleReportApp {
 
 	public static void main(String[] args) throws Exception {
 		ApplicationContext ctx = SpringApplication.run(SimpleReportApp.class, args);
+		//ctx.getBean(ThinkGearSocket.class).start();//receive data from socket which sended from TGC
+		ctx.getBean(ComRead.class).start();//receive data from com3 directly
 
 		// test
 //		DataCollectApp dca = ctx.getBean(DataCollectApp.class);

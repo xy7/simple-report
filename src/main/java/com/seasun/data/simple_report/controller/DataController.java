@@ -15,11 +15,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.seasun.data.simple_report.base.MaxDropQueue;
 
@@ -42,17 +42,36 @@ public class DataController {
 	//历史数据
 	@Autowired
 	private NamedParameterJdbcTemplate jdbc;
+	
+	@RequestMapping("/getDeviceIds")
+	public @ResponseBody Map<String, Object> getDeviceIds(){
+		
+		List<String> ids = new ArrayList<>();
+		String sql = "select distinct ifnull(device_id, 'empty') id from esense";
+		List<Map<String, Object>> dbRes = jdbc.queryForList(sql, new HashMap<>(0));
+		for(Map<String, Object> e:dbRes){
+			ids.add(e.getOrDefault("id", "").toString());
+		}
+		
+		Map<String, Object> res = new HashMap<>();
+		res.put("ids", ids);
+		res.put("code", 0);
+		return res;
+	}
 
 	@RequestMapping("/getEsenceData")
 	public @ResponseBody Map<String, Object> getEsenceData(
-			@RequestParam(value = "start", required = false) String start
-			, @RequestParam(value = "end", required = false) String end){
+			@RequestParam(value = "start", required = true) String start
+			, @RequestParam(value = "end", required = true) String end
+			, @RequestParam(value = "deviceId", required = false) String deviceId){
 
 		Map<String, Object> paramMap = new HashMap<>();
 		paramMap.put("start", start);
 		paramMap.put("end", end);
+		paramMap.put("deviceId", deviceId);
 		String sql = "select * from esense where receive_time >= :start "
-				+ " and receive_time <= :end"
+				+ " and receive_time <= :end "
+				+ " and device_id = :deviceId "
 				+ " order by receive_time";
 		List<Map<String, Object>> dbRes = jdbc.queryForList(sql, paramMap);
 		Map<String, Object> res = new HashMap<>();
@@ -107,8 +126,10 @@ public class DataController {
 
 	@MessageMapping("/type")
     //@SendTo("/topic/greetings")
-    public void getRealtimeData(@RequestParam String type) throws Exception {
-
+    public void getRealtimeData(String jsonPara) throws Exception {
+		JSONObject obj = JSON.parseObject(jsonPara);
+		String type = obj.getString("type");
+		String deviceId = obj.getString("deviceId");
 		MaxDropQueue<Map<String, Object>> queue = queues.get(type);
 		log.info("getRealtimeData type: " + type);
 		if(queue == null){
@@ -119,7 +140,8 @@ public class DataController {
 
         while(true){
         	Map<String, Object> paramMap = queue.take();
-
+        	if(!paramMap.get("deviceId").toString().equals(deviceId))
+        		continue;
         	JSONObject json = new JSONObject(paramMap);
         	log.debug(type + " queue out: " + json);
             template.convertAndSend("/realDataResp/" + type, json);

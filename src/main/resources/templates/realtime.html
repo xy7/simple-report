@@ -7,6 +7,14 @@
 <body onload="lastRun()">
 	<div th:replace="layout_page_header::content"></div>
 	<div>
+		<div class="row">
+	    	<label class="col-md-1 control-label">设备id:</label>
+	    	<select id="device_selector" class="col-md-2"	>
+	    		<option value ="" selected="selected"></option>
+	    	</select>
+	    	<input id="submitEsense" class="col-md-1" type="button" value="查询" onclick="reqData(&quot;rawEeg&quot;);reqData(&quot;esence&quot;);" />
+ 		</div>
+ 		
 		<div id="containerEsense" class="container-fluid" style="min-width:800px;height:400px"></div>
 		<div id="containerRawEeg" class="container-fluid" style="min-width:800px;height:400px"></div>
     <div style="display:none">
@@ -22,6 +30,7 @@
 				disconnect();
 				connect();
 			}
+			getDeviceIds();
 	</script>
 </body>
 </html>

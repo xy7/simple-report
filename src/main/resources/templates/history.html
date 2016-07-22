@@ -15,8 +15,15 @@
  			<div class="row">
  			  <label class="col-md-1 control-label">开始时间:</label>
 				<input id="start" class="col-md-2" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"></input>
+				
 				<label class="col-md-1 control-label">结束时间:</label>
 	    	<input id="end" class="col-md-2" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})"></input>
+	    	
+	    	<label class="col-md-1 control-label">设备id:</label>
+	    	<select id="device_selector" class="col-md-2"	>
+	    		<option value ="" selected="selected"></option>
+	    	</select>
+	    	
 	    	<input id="submitEsense" class="col-md-1" type="button" value="查询" onclick="esensePic()" />
  			</div>
 		  <div id="containerEsense"  style="min-width:800px;height:400px"></div>
@@ -25,6 +32,9 @@
  		<script>
  			$("#start").val(laydate.now(-30));
  			$("#end").val(laydate.now(1));
+ 			getDeviceIds();
+ 			//$("#device_selector").append("<option>Text</option>");
+ 			//alert($("#device_selector").get(0).options[1].text );
  		</script>
   </body>
 </html>
