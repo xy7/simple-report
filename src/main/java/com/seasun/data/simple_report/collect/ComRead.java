@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,19 +48,18 @@ public class ComRead implements SerialPortEventListener, Runnable {
 	private long diffSecondsAvg = Long.MAX_VALUE;
 
 	public void start() throws TooManyListenersException, IOException, UnsupportedCommOperationException {
+		Thread daemon = null;
 		while (!bindSucess){
+			
 			portList = CommPortIdentifier.getPortIdentifiers(); // 得到当前连接上的端口
 			while (portList.hasMoreElements()) {
 				portId = (CommPortIdentifier) portList.nextElement();
 				if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {// 判断如果端口类型是串口
-					// if (portId.getName().equals("COM3")) { //判断如果COM3端口已经启动就连接
 					log.info(portId.getName());
 					if (portId.getName().equals("COM4") || portId.getName().equals("COM3")) {
 						log.info("bind " + portId.getName());
 						try {
 							SerialPort serialPort = (SerialPort) portId.open("SerialReader", 2000);
-							//serialPort.addEventListener(new ComRead()); 
-				            //serialPort.notifyOnDataAvailable( true );
 				            int rate = 256000; //波特率
 				            int dataBits = SerialPort.DATABITS_8;//数据位
 				            int stopBits = SerialPort.STOPBITS_1;//停止位
@@ -67,6 +67,7 @@ public class ComRead implements SerialPortEventListener, Runnable {
 				            serialPort.setSerialPortParams( rate, dataBits, stopBits, parity );
 				            inputStream = serialPort.getInputStream();
 							reader = new BufferedReader(new InputStreamReader(inputStream), 32);
+							daemon = statProcessThread();
 				            new Thread(this).start();
 						} catch (PortInUseException e) {
 							e.printStackTrace();
@@ -82,8 +83,19 @@ public class ComRead implements SerialPortEventListener, Runnable {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error(e);
+			}
+			
+		}
+		
+		while(true){
+			
+			log.info("daemon state: " + daemon.getState());
+			
+			try {
+				Thread.sleep(1000*20);
+			} catch (InterruptedException e) {
+				log.error(e);
 			}
 		}
 		
@@ -114,15 +126,13 @@ public class ComRead implements SerialPortEventListener, Runnable {
 		
 		String deviceId = data.getString("deviceId");
 		deviceId = deviceId.substring(0, deviceId.length()<20?deviceId.length():20);
-		
-		monitorDelay0(time, data);
 
 		if (data.containsKey("rawEeg")) {
 			haveValidData = true;
 			JSONArray ja = data.getJSONArray("rawEeg");
 			int index = 0;
 			for(Object o:ja){
-				LocalDateTime timeIndex = time.plusNanos(index * 1000000);
+				LocalDateTime timeIndex = time.plusNanos((long)index * 1000000000/512);
 				eventHandle.rawEegEvent(timeIndex, Integer.parseInt(o.toString()), index, deviceId);
 				index++;
 			}
@@ -160,13 +170,9 @@ public class ComRead implements SerialPortEventListener, Runnable {
 
 	}
 
-	public void monitorDelay0(LocalDateTime time, JSONObject data) {
+	public void monitorDelay(LocalDateTime time, JSONObject data) {
 		//单片机接收时间
 		LocalDateTime scmTime = LocalDateTime.parse(data.getString("timestamp").replace(" ", "T"));
-		monitorDelay(time, scmTime);
-	}
-
-	public void monitorDelay(LocalDateTime time, LocalDateTime scmTime) {
 		if(diffSecondsAvg == Long.MAX_VALUE){
 			log.info("init  scm time: " + scmTime + " receive time: " + time);
 		}
@@ -176,43 +182,66 @@ public class ComRead implements SerialPortEventListener, Runnable {
 		if( absDiffSeconds < diffSecondsAvg){
 			diffSecondsAvg = absDiffSeconds;
 		} else if(absDiffSeconds - diffSecondsAvg > 5){
-			log.error("diff seconds truned  more than 5 seconds, scm time: " + scmTime + " receive time: " + time);
+			log.error("diff seconds turned  more than 5 seconds, scm time: " + scmTime + " receive time: " + time);
 		}
-		
 	}
 
+	private ArrayBlockingQueue<JSONObject> jsonQueue = new ArrayBlockingQueue<>(4096);
+	
 	@Override
 	public void run() {
 		while(true)
 			readAndProcessData();
 	}
+	
+	public Thread statProcessThread(){
+		Thread d = new Thread(
+				new Runnable(){
 
+					@Override
+					public void run() {
+						log.debug("process start:");
+						while(true){
+							if(jsonQueue.size() > 0){
+								try {
+									JSONObject obj = jsonQueue.take();
+									log.debug("process: " + obj);
+									LocalDateTime ldt = LocalDateTime.parse( obj.getString("receive_time") );
+									parsePacket(ldt, obj);	
+								} catch (InterruptedException e) {
+									log.error(e);
+								}
+							}
+						}
+						
+					}}
+				);
+		d.setDaemon(true);
+		d.start();
+		return d;
+	}
+	
 	public void readAndProcessData() {	
 		try {
-			//while(inputStream.available() > 0){
-				//log.info("inputStream available");
-			
-				//reader = new BufferedReader(new InputStreamReader(inputStream), 32);
-
-				String userInput;
-				while ((userInput = reader.readLine()) != null) {
-
-					LocalDateTime ldt = LocalDateTime.now();
-					log.info(ldt + " : " + userInput);
-
-					  //不做操作，测试延时情况
-//					String[] packets = userInput.split("/\r/");
-//					for (String s:packets) {
-//						if (s.indexOf("{") > -1) {
-//							JSONObject obj = JSON.parseObject(s);
-//							monitorDelay0(ldt, obj);
-//							//parsePacket(ldt, obj);
-//						}
-//					}
-
+			String userInput;
+			while ((userInput = reader.readLine()) != null) {
+				LocalDateTime ldt = LocalDateTime.now();
+				//log.info(ldt + " : " + userInput);
+				
+				if (userInput.indexOf("{") > -1) {
+					JSONObject obj = JSON.parseObject(userInput);
+					monitorDelay(ldt, obj);
+					
+					//parsePacket(ldt, obj);
+					obj.put("receive_time", ldt.toString());
+					try {
+						jsonQueue.put(obj);
+						log.debug("put sucess: " + jsonQueue.size());
+					} catch (InterruptedException e) {
+						log.error(e);
+					}
 				}
-			//}
-			
+			}
 		} catch (SocketException e) {
 			log.error(e.toString());
 		} catch (IOException e) {

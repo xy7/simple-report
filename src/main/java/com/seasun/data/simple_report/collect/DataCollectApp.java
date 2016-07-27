@@ -3,6 +3,8 @@ package com.seasun.data.simple_report.collect;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -12,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.seasun.data.simple_report.base.MaxDropQueue;
 
@@ -66,6 +69,7 @@ public class DataCollectApp implements EventHandle{
 	public void eegPowerEvent(LocalDateTime time
 			, int delta, int theta, int low_alpha, int high_alpha
 			, int low_beta, int high_beta,int low_gamma, int mid_gamma, String deviceId) {
+		
 		log.debug(time + " eegPower:");
 		log.debug("delta Level: " + delta);
 		log.debug("theta Level: " + theta);
@@ -95,7 +99,14 @@ public class DataCollectApp implements EventHandle{
 				+ ", :high_beta, :low_gamma, :mid_gamma"
 				+ ", :time, :deviceId)", paramMap);
 	}
+	
+	
+	private List<Map<String, Object>> rawEegParams = new LinkedList<>(); 
+	
+	long num = 0;
+	long sum = 0;
 
+	//@Transactional
 	@Override
 	public void rawEegEvent(LocalDateTime time, int raw, int index, String deviceId) {
 		//log.debug(time + " rawEvent Level: " + raw + " index: " + index);
@@ -105,8 +116,22 @@ public class DataCollectApp implements EventHandle{
 		paramMap.put("time", time.toString().replace("T", " "));
 		paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
 		paramMap.put("deviceId", deviceId);
-		if(raw > -2048 && raw < 2047)
+		if(raw > -2048 && raw < 2047 && index%128 == 0)
 			queues.get("rawEeg").put(paramMap);
-		jdbc.update("insert into raw_eeg(raw_eeg, index_, receive_time, device_id) values(:raw, :index, :time, :deviceId)", paramMap);
+		String sql = "insert DELAYED into raw_eeg2(raw_eeg, index_, receive_time, device_id) values(:raw, :index, :time, :deviceId)";
+		
+		rawEegParams.add(paramMap);
+		//jdbc.update(sql, paramMap);
+		if(index >= 511){
+			long begin = System.currentTimeMillis();
+			jdbc.batchUpdate(sql, rawEegParams.toArray(new HashMap[0]));
+			long cost = System.currentTimeMillis() - begin;
+			num ++;
+			sum += cost;
+			log.debug("batchUpdate cost time: " + cost + " avg:" + sum/num + " num: " + num );
+
+			rawEegParams = new LinkedList<>();
+		}
+
 	}
 }

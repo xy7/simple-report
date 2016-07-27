@@ -16,6 +16,9 @@ public class WebsocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 		config.enableSimpleBroker("/realDataResp");
 		//设置了一个应用程序访问地址的前缀，可能是为了和其他的普通请求区分开吧
 		config.setApplicationDestinationPrefixes("/realDataReq");
+//		config.enableStompBrokerRelay("/realDataResp")
+//			.setSystemHeartbeatReceiveInterval(250)
+//			.setSystemHeartbeatSendInterval(250);
 	}
 
 	@Override

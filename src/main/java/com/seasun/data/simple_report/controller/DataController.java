@@ -47,9 +47,12 @@ public class DataController {
 	public @ResponseBody Map<String, Object> getDeviceIds(){
 		
 		List<String> ids = new ArrayList<>();
-		String sql = "select distinct ifnull(device_id, 'empty') id from esense";
+		//String sql = "select distinct ifnull(device_id, 'null') id from esense";
+		String sql = "select distinct device_id id from esense";
 		List<Map<String, Object>> dbRes = jdbc.queryForList(sql, new HashMap<>(0));
 		for(Map<String, Object> e:dbRes){
+			if(e.getOrDefault("id", "") == null)
+				continue;
 			ids.add(e.getOrDefault("id", "").toString());
 		}
 		
@@ -139,14 +142,16 @@ public class DataController {
 		log.info("queue size: " + queue.size());
 
         while(true){
-        	Map<String, Object> paramMap = queue.take();
-        	if(!paramMap.get("deviceId").toString().equals(deviceId))
-        		continue;
-        	JSONObject json = new JSONObject(paramMap);
-        	log.debug(type + " queue out: " + json);
-            template.convertAndSend("/realDataResp/" + type, json);
-            
-            //Thread.sleep(1000); // simulated delay
+        	if(queue.size() > 0){
+	        	Map<String, Object> paramMap = queue.take();
+	        	if(!paramMap.get("deviceId").toString().equals(deviceId))
+	        		continue;
+	        	JSONObject json = new JSONObject(paramMap);
+	        	log.debug(type + " queue out: " + json);
+	            template.convertAndSend("/realDataResp/" + type, json);
+        	} else{
+        		Thread.sleep(1000); // simulated delay
+        	}
         }
     }
 	

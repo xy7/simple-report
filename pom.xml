@@ -81,6 +81,19 @@
          <groupId>org.springframework</groupId>
          <artifactId>spring-messaging</artifactId>
      </dependency>
+    <!-- https://mvnrepository.com/artifact/org.projectreactor/reactor-core -->
+		<dependency>
+		    <groupId>org.projectreactor</groupId>
+		    <artifactId>reactor-core</artifactId>
+		    <version>1.1.6.RELEASE</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.projectreactor/reactor-net -->
+		<dependency>
+		    <groupId>org.projectreactor</groupId>
+		    <artifactId>reactor-net</artifactId>
+		    <version>1.1.6.RELEASE</version>
+		</dependency>
+
      
      <!-- https://mvnrepository.com/artifact/org.rxtx/rxtx -->
 		<!-- <dependency>

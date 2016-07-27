@@ -161,7 +161,7 @@ function connect() {
 			var x = json.longTime;
 			var y = json.raw;
 			seriesRawEeg.addPoint([ x, y ], true, true);
-			console.log(json);
+			//console.log(json);
 		});
 		reqData("rawEeg");
 		
@@ -172,7 +172,7 @@ function connect() {
 			var med = json.meditation;
 			seriesEsenseAtt.addPoint([ x, att ], true, true);
 			seriesEsenseMed.addPoint([ x, med ], true, true);
-			console.log(json);
+			//console.log(json);
 		});
 		reqData("esense");
 	});
@@ -203,7 +203,7 @@ function rawEegDymPic() {
 	var chart;
 	$('#containerRawEeg').highcharts({
 		chart : {
-			type : 'spline',
+			type : 'column', //spline
 			animation : Highcharts.svg, // don't animate in old IE
 			marginRight : 10,
 			events : {
@@ -250,7 +250,8 @@ function rawEegDymPic() {
 		},
 		series : [ {
 			name : 'rawEeg',
-			data : zeroData()
+			data : zeroData(-50),
+			pointWidth: 10
 		} ]
 	});
 }
@@ -317,19 +318,20 @@ function esenseDymPic() {
 			data : zeroData()
 		}, {
 			name : 'meditation',
-			data : zeroData()
+			data : zeroData(-110)
 		} ]
 	});
 }
 
-function zeroData() {
+function zeroData(start) {
 	// generate an array of
 	// random data
 	var data = [];
 	var time = (new Date()).getTime();
 	var i;
 
-	for (i = -110; i <= -10; i++) {
+	//for (i = -110; i <= -10; i++) {
+	for (i = start; i <= -10; i++) {
 		data.push({
 					x : time + i * 1000,
 					y : 0

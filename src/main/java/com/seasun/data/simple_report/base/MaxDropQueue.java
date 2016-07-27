@@ -48,11 +48,11 @@ public class MaxDropQueue<E>{
 				queue.put(e);
 				break;
 			} catch (InterruptedException e1) {
-				log.info(e1);
+				log.error(e1);
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e2) {
-					log.info(e2);
+					log.error(e2);
 				}
 			}
 			
@@ -66,11 +66,11 @@ public class MaxDropQueue<E>{
 			try {
 				return queue.take();
 			} catch (InterruptedException e) {
-				System.out.println(e);
+				log.error(e);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e2) {
-					System.out.println(e2);
+					log.error(e2);
 				}
 			}
 		}

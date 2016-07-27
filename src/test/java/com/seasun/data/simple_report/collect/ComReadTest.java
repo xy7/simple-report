@@ -15,16 +15,13 @@ public class ComReadTest {
 	
 	@Test
 	public void testTime(){
-		LocalDateTime time = LocalDateTime.parse("2016-07-20T10:00:00");
-		LocalDateTime scmTime = LocalDateTime.parse("2016-07-14T06:55:21");
-		ComRead com = new ComRead();
-		com.monitorDelay(time, scmTime);
-		
-		for(int i = 0; i < 10; i++){
-			time = time.plusSeconds(i*20);
-			//scmTime.plusSeconds(i);
-			com.monitorDelay(time, scmTime);
+		LocalDateTime time = LocalDateTime.now();
+		for(int i=0;i<512;i++){
+			long k = (long)i * 1000000000/512;
+			LocalDateTime timeIndex = time.plusNanos(k);
+			System.out.println(i + "\t" + k + "\t" + timeIndex);
 		}
+		
 
 	}
 
