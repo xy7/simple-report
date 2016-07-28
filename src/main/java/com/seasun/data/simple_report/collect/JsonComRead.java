@@ -158,9 +158,9 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 				LocalDateTime timeIndex = time.plusNanos((long)index * 1000000000/512);
 				Map<String, Object> paramMap = new HashMap<>();
 				paramMap.put("deviceId", deviceId);
-				paramMap.put("time", timeStamp);
+				paramMap.put("time", timeIndex.toString().replace("T", " "));
 				paramMap.put("index", index);
-				paramMap.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()); //js使用
+				paramMap.put("longTime", timeIndex.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()); //js使用
 				paramMap.put(RAW_EEG, Integer.parseInt(o.toString()));
 				if(index % 128 == 0)
 					queues.get(RAW_EEG).put(paramMap);

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSONObject;
 import com.seasun.data.simple_report.base.MaxDropQueue;
 
+
+//废弃不用
 @Component
 public class JsonEventHandleRealTime implements JsonEventHandle{
 	
