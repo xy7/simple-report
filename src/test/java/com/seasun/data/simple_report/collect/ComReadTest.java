@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.junit.Test;
 
@@ -33,6 +34,18 @@ public class ComReadTest {
 		
 
 		System.out.println(obj);
+	}
+	
+	@Test
+	public void testQueue(){
+		ArrayBlockingQueue<JSONObject>[] jsonQueues = new ArrayBlockingQueue[5];
+
+		for(ArrayBlockingQueue queue:jsonQueues){
+			queue = new ArrayBlockingQueue<JSONObject>(10);
+		
+			if(queue != null)
+				System.out.println(queue.size());
+		}
 	}
 
 }

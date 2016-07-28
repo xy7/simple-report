@@ -145,8 +145,10 @@ function setConnected(connected) {
 
 var stompClient = null;
 var seriesRawEeg = null;
+
 var seriesEsenseAtt = null;
 var seriesEsenseMed = null;
+
 function connect() {
 	console.log("connect");
 	var socket = new SockJS('/realDataEndPoint');
@@ -170,8 +172,9 @@ function connect() {
 			var x = json.longTime;
 			var att = json.attention;
 			var med = json.meditation;
-			seriesEsenseAtt.addPoint([ x, att ], true, true);
+			
 			seriesEsenseMed.addPoint([ x, med ], true, true);
+			seriesEsenseAtt.addPoint([ x, att ], true, true);
 			//console.log(json);
 		});
 		reqData("esense");
@@ -272,8 +275,14 @@ function esenseDymPic() {
 			marginRight : 10,
 			events : {
 				load : function() {
+					console.log("series.length: " + this.series.length)
+					
+					console.log("this.series[1]: " + this.series[1].name + " - " +  this.series[1].data)
+					
 					seriesEsenseAtt = this.series[0];
 					seriesEsenseMed = this.series[1];
+					
+					console.log("seriesEsenseMed: " + seriesEsenseMed.name + " - " +  seriesEsenseMed.data)
 				}
 			}
 		},
@@ -315,7 +324,7 @@ function esenseDymPic() {
 		},
 		series : [ {
 			name : 'attention',
-			data : zeroData()
+			data : zeroData(-110)
 		}, {
 			name : 'meditation',
 			data : zeroData(-110)
@@ -326,6 +335,7 @@ function esenseDymPic() {
 function zeroData(start) {
 	// generate an array of
 	// random data
+	console.log("zeroData start: " + start)
 	var data = [];
 	var time = (new Date()).getTime();
 	var i;
