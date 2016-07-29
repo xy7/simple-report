@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TooManyListenersException;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import javax.annotation.Resource;
 
@@ -33,31 +34,23 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.seasun.data.simple_report.base.EventType;
 import com.seasun.data.simple_report.base.MaxDropQueue;
 
 @Component
 public class JsonComRead implements SerialPortEventListener, Runnable {
-	private static final String POOR_SIGNAL_LEVEL = "poorSignalLevel";
-
-	private static final String EEG_POWER = "eegPower";
-
-	private static final String E_SENSE = "eSense";
-
-	private static final String BLINK_STRENGTH = "blinkStrength";
-
-	private static final String RAW_EEG = "rawEeg";
 
 	private static final Log log = LogFactory.getLog(JsonComRead.class);
 
 	@Autowired(required = true)
 	@Qualifier("jsonEventHandleDb")
 	private JsonEventHandle dbHandle;
-
-//	@Autowired(required = true)
-//	@Qualifier("jsonEventHandleRealTime")
-//	private JsonEventHandle realtimeHandle;
-	@Resource(name="allTypeQueues")
-	public Map<String, MaxDropQueue<Map<String, Object> > > queues;
+	
+	@Resource(name="realtimeQueues")
+	public Map<EventType, MaxDropQueue<Map<String, Object> > > realtimeQueues;
+	
+	@Resource(name="dbQueues")
+	public Map<EventType, BlockingQueue<Map<String, Object>> > dbQueues;
 
 	boolean bindSucess = false;
 
@@ -71,6 +64,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 
 	public void start() throws TooManyListenersException, IOException, UnsupportedCommOperationException {
 		Thread daemon = null;
+		Thread parseDaemon = null;
 		while (!bindSucess) {
 
 			portList = CommPortIdentifier.getPortIdentifiers(); // 得到当前连接上的端口
@@ -89,7 +83,8 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 							serialPort.setSerialPortParams(rate, dataBits, stopBits, parity);
 							inputStream = serialPort.getInputStream();
 							reader = new BufferedReader(new InputStreamReader(inputStream), 32);
-							daemon = statProcessThread();
+							daemon = startDbProcessThread();
+							parseDaemon = startParseProcessThread();
 							new Thread(this).start();
 						} catch (PortInUseException e) {
 							e.printStackTrace();
@@ -111,8 +106,9 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 		}
 
 		while (true) {
-
-			log.info("daemon state: " + daemon.getState());
+			log.info("dbDaemon state: " + daemon.getState() );
+			log.info("parseDaemon state: " + parseDaemon.getState());
+			log.info("raw blocking queue size: " + dbQueues.get(EventType.RAW_EEG).size());
 
 			try {
 				Thread.sleep(1000 * 20);
@@ -150,9 +146,9 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 		deviceId = deviceId.substring(0, deviceId.length() < 20 ? deviceId.length() : 20);
 		String timeStamp = time.toString().replace("T", " ");
 
-		if (data.containsKey(RAW_EEG)) {
+		if (data.containsKey(EventType.RAW_EEG.getValue())) {
 			haveValidData = true;
-			JSONArray ja = data.getJSONArray("rawEeg");
+			JSONArray ja = data.getJSONArray(EventType.RAW_EEG.getValue());
 			int index = 0;
 			for(Object o:ja){
 				LocalDateTime timeIndex = time.plusNanos((long)index * 1000000000/512);
@@ -161,49 +157,52 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 				paramMap.put("time", timeIndex.toString().replace("T", " "));
 				paramMap.put("index", index);
 				paramMap.put("longTime", timeIndex.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()); //js使用
-				paramMap.put(RAW_EEG, Integer.parseInt(o.toString()));
-				if(index % 128 == 0)
-					queues.get(RAW_EEG).put(paramMap);
-				jsonQueues.get(RAW_EEG).put(paramMap);
+				paramMap.put(EventType.RAW_EEG.getValue(), Integer.parseInt(o.toString()));
+				if(index % 128 == 0){
+					//log.info("put realTimeQueue: " + paramMap);
+					realtimeQueues.get(EventType.RAW_EEG).put(paramMap);
+				}
+				dbQueues.get(EventType.RAW_EEG).put(paramMap);
 				index++;
+				
 			}
 		}
 
-		if (data.containsKey(BLINK_STRENGTH)) {
+		if (data.containsKey(EventType.BLINK_STRENGTH.getValue())) {
 			haveValidData = true;
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			json.put("time", timeStamp);
-			json.put(BLINK_STRENGTH, data.getIntValue(BLINK_STRENGTH));
-			queues.get(RAW_EEG).put(json);
-			jsonQueues.get(BLINK_STRENGTH).put(json);
+			json.put(EventType.BLINK_STRENGTH.getValue(), data.getIntValue(EventType.BLINK_STRENGTH.getValue()));
+			realtimeQueues.get(EventType.BLINK_STRENGTH).put(json);
+			dbQueues.get(EventType.BLINK_STRENGTH).put(json);
 		}
 
-		if (data.containsKey(E_SENSE)) {
+		if (data.containsKey(EventType.E_SENSE.getValue())) {
 			haveValidData = true;
-			JSONObject esense = data.getJSONObject(E_SENSE);
+			JSONObject esense = data.getJSONObject(EventType.E_SENSE.getValue());
 			esense.put("deviceId", deviceId);
 			esense.put("time", timeStamp);
-			queues.get(RAW_EEG).put(esense);
-			jsonQueues.get(E_SENSE).put(esense);
+			realtimeQueues.get(EventType.E_SENSE).put(esense);
+			dbQueues.get(EventType.E_SENSE).put(esense);
 		}
-		if (data.containsKey(EEG_POWER)) {
+		if (data.containsKey(EventType.EEG_POWER.getValue())) {
 			haveValidData = true;
-			JSONObject eegPower = data.getJSONObject(EEG_POWER);
+			JSONObject eegPower = data.getJSONObject(EventType.EEG_POWER.getValue());
 			eegPower.put("deviceId", deviceId);
 			eegPower.put("time", timeStamp);
-			queues.get(RAW_EEG).put(eegPower);
-			jsonQueues.get(EEG_POWER).put(eegPower);
+			realtimeQueues.get(EventType.EEG_POWER).put(eegPower);
+			dbQueues.get(EventType.EEG_POWER).put(eegPower);
 		}
 
-		if (data.containsKey(POOR_SIGNAL_LEVEL)) {
+		if (data.containsKey(EventType.POOR_SIGNAL_LEVEL)) {
 			haveValidData = true;
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			json.put("time", timeStamp);
-			json.put(POOR_SIGNAL_LEVEL, data.getIntValue(POOR_SIGNAL_LEVEL));
-			queues.get(RAW_EEG).put(json);
-			jsonQueues.get(POOR_SIGNAL_LEVEL).put(json);
+			json.put(EventType.POOR_SIGNAL_LEVEL.getValue(), data.getIntValue(EventType.POOR_SIGNAL_LEVEL.getValue()));
+			realtimeQueues.get(EventType.POOR_SIGNAL_LEVEL).put(json);
+			dbQueues.get(EventType.POOR_SIGNAL_LEVEL).put(json);
 
 		}
 
@@ -229,74 +228,13 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 		}
 	}
 
-	private static Map<String, ArrayBlockingQueue<Map>> jsonQueues = new HashMap<>(5);
-	static {
-		jsonQueues.put(RAW_EEG, new ArrayBlockingQueue<>(4096));
-		jsonQueues.put(BLINK_STRENGTH, new ArrayBlockingQueue<>(4096));
-		jsonQueues.put(E_SENSE, new ArrayBlockingQueue<>(4096));
-		jsonQueues.put(EEG_POWER, new ArrayBlockingQueue<>(4096));
-		jsonQueues.put(POOR_SIGNAL_LEVEL, new ArrayBlockingQueue<>(4096));
-	}
-
 	@Override
 	public void run() {
 		while (true)
 			readAndProcessData();
 	}
-
-	public Thread statProcessThread() {
-		Thread d = new Thread(
-				new Runnable() {
-
-					@Override
-					public void run() {
-						log.debug("process start:");
-						while (true) {
-							for (Map.Entry<String, ArrayBlockingQueue<Map>> e : jsonQueues.entrySet()) {
-								ArrayBlockingQueue<Map> queue = e.getValue();
-								if (queue.size() == 0){
-									continue;
-								}
-									
-								String type = e.getKey();
-								Map<String, Object> paramMap = null;
-								try {
-									paramMap = queue.take();
-								} catch (InterruptedException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-								switch (type) {
-									case POOR_SIGNAL_LEVEL:
-										dbHandle.poorSignalEvent(paramMap);
-										break;
-									case EEG_POWER:
-										dbHandle.eegPowerEvent(paramMap);
-										break;
-									case E_SENSE:
-										dbHandle.esenseEvent(paramMap);
-										break;
-									case BLINK_STRENGTH:
-										dbHandle.blinkEvent(paramMap);
-										break;
-									case RAW_EEG:
-										dbHandle.rawEegEvent(paramMap);
-										break;
-									default:
-										break;
-
-								}
-
-							}
-						}
-
-					}
-				}
-				);
-		d.setDaemon(true);
-		d.start();
-		return d;
-	}
+	
+	private ArrayBlockingQueue<JSONObject> jsonQueue = new ArrayBlockingQueue<>(4096);
 
 	public void readAndProcessData() {
 		try {
@@ -310,18 +248,89 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 					monitorDelay(ldt, obj);
 
 					try {
-						parsePacket(ldt, obj);
+						//parsePacket(ldt, obj);
+						obj.put("receive_time", ldt.toString());
+						jsonQueue.put(obj);
+						//log.debug("put sucess: " + jsonQueue.size());
 					} catch (InterruptedException e) {
 						log.error(e);
 					}
+
 				}
 			}
-		} catch (SocketException e) {
-			log.error(e.toString());
 		} catch (IOException e) {
-			// log.error(e.toString());
+			//log.error("no data, device may close or disconnect - " + e.toString());
 		} catch (JSONException e) {
-			log.error(e.toString());
+			log.error("json parse error - " + e.toString());
 		}
+	}
+	
+	public Thread startParseProcessThread(){
+		Thread d = new Thread(
+				new Runnable(){
+
+					@Override
+					public void run() {
+						log.debug("process start:");
+						while(true){
+							if(jsonQueue.size() > 0){
+								try {
+									JSONObject obj = jsonQueue.take();
+									//log.debug("process: " + obj);
+									LocalDateTime ldt = LocalDateTime.parse( obj.getString("receive_time") );
+									parsePacket(ldt, obj);	
+								} catch (InterruptedException e) {
+									log.error(e);
+								}
+							}
+						}
+						
+					}}
+				);
+		d.setDaemon(true);
+		d.start();
+		return d;
+	}
+	
+	public Thread startDbProcessThread() {
+		Thread d = new Thread(
+				new Runnable() {
+
+					@Override
+					public void run() {
+						log.debug("process start:");
+						while (true) {
+							//long begin = System.currentTimeMillis();
+							for (Map.Entry<EventType, BlockingQueue<Map<String, Object>>> e : dbQueues.entrySet()) {
+								BlockingQueue<Map<String, Object>> queue = e.getValue();
+								if (queue.size() == 0){
+									continue;
+								}
+									
+								EventType eventType = e.getKey();
+								Map<String, Object> paramMap = null;
+//								try {
+//									paramMap = queue.take();	
+//								} catch (InterruptedException e1) {
+//									log.error(e1.toString());
+//								}
+								
+								paramMap = queue.poll();
+								if(paramMap == null)
+									continue;
+								dbHandle.handle(eventType, paramMap);
+							}
+							//log.info("dbprocess thread cost time: " + (System.currentTimeMillis() - begin) ); 
+						}
+						
+						
+
+					}
+				}
+				);
+		//d.setDaemon(true);
+		d.setPriority(Thread.MIN_PRIORITY);
+		d.start();
+		return d;
 	}
 }

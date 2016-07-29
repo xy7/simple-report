@@ -161,13 +161,13 @@ function connect() {
 		stompClient.subscribe('/realDataResp/rawEeg', function(res) {
 			var json = JSON.parse(res.body);
 			var x = json.longTime;
-			var y = json.raw;
+			var y = json.rawEeg;
 			seriesRawEeg.addPoint([ x, y ], true, true);
 			//console.log(json);
 		});
 		reqData("rawEeg");
 		
-		stompClient.subscribe('/realDataResp/esense', function(res) {
+		stompClient.subscribe('/realDataResp/eSense', function(res) {
 			var json = JSON.parse(res.body);
 			var x = json.longTime;
 			var att = json.attention;
@@ -177,7 +177,7 @@ function connect() {
 			seriesEsenseAtt.addPoint([ x, att ], true, true);
 			//console.log(json);
 		});
-		reqData("esense");
+		reqData("eSense");
 	});
 }
 

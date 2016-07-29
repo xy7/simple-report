@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.seasun.data.simple_report.base.EventType;
 import com.seasun.data.simple_report.base.MaxDropQueue;
 
 @Controller
@@ -121,8 +122,8 @@ public class DataController {
 	
 	
 	//实时数据
-	@Resource(name="allTypeQueues")
-	public Map<String, MaxDropQueue<Map<String, Object> > > queues;
+	@Resource(name="realtimeQueues")
+	public Map<EventType, MaxDropQueue<Map<String, Object> > > queues;
 	
 	@Autowired
 	private SimpMessagingTemplate template;
@@ -131,7 +132,7 @@ public class DataController {
     //@SendTo("/topic/greetings")
     public void getRealtimeData(String jsonPara) throws Exception {
 		JSONObject obj = JSON.parseObject(jsonPara);
-		String type = obj.getString("type");
+		EventType type = EventType.parse(obj.getString("type"));
 		String deviceId = obj.getString("deviceId");
 		MaxDropQueue<Map<String, Object>> queue = queues.get(type);
 		log.info("getRealtimeData type: " + type);
@@ -148,7 +149,7 @@ public class DataController {
 	        		continue;
 	        	JSONObject json = new JSONObject(paramMap);
 	        	log.debug(type + " queue out: " + json);
-	            template.convertAndSend("/realDataResp/" + type, json);
+	            template.convertAndSend("/realDataResp/" + type.getValue(), json);
         	} else{
         		Thread.sleep(1000); // simulated delay
         	}

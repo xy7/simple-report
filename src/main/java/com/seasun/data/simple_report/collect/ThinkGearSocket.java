@@ -24,7 +24,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
-@Component
+//@Component //停止使用TGC读数据的方式
 public class ThinkGearSocket implements Runnable {
 	private static final Log log = LogFactory.getLog(ThinkGearSocket.class);
 

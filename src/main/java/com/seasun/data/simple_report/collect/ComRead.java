@@ -67,7 +67,7 @@ public class ComRead implements SerialPortEventListener, Runnable {
 				            serialPort.setSerialPortParams( rate, dataBits, stopBits, parity );
 				            inputStream = serialPort.getInputStream();
 							reader = new BufferedReader(new InputStreamReader(inputStream), 32);
-							daemon = statProcessThread();
+							daemon = startProcessThread();
 				            new Thread(this).start();
 						} catch (PortInUseException e) {
 							e.printStackTrace();
@@ -194,7 +194,7 @@ public class ComRead implements SerialPortEventListener, Runnable {
 			readAndProcessData();
 	}
 	
-	public Thread statProcessThread(){
+	public Thread startProcessThread(){
 		Thread d = new Thread(
 				new Runnable(){
 
