@@ -303,7 +303,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 							//long begin = System.currentTimeMillis();
 							for (Map.Entry<EventType, BlockingQueue<Map<String, Object>>> e : dbQueues.entrySet()) {
 								BlockingQueue<Map<String, Object>> queue = e.getValue();
-								if (queue.size() == 0){
+								if (queue.peek() == null){//查看是否有元素
 									continue;
 								}
 									
