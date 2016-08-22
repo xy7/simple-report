@@ -107,8 +107,4 @@ public class Utils {
 		return "";
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(SHA1("seasun_raw_data_collect_1") );
-		System.out.println(SHA1("seasun_raw_data_collect_1").length() );
-	}
 }
