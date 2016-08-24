@@ -183,6 +183,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 			JSONObject esense = data.getJSONObject(EventType.E_SENSE.getValue());
 			esense.put("deviceId", deviceId);
 			esense.put("time", timeStamp);
+			esense.put("longTime", time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()); //js使用
 			realtimeQueues.get(EventType.E_SENSE).put(esense);
 			dbQueues.get(EventType.E_SENSE).put(esense);
 		}
