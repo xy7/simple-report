@@ -163,7 +163,7 @@ function connect() {
 			var x = json.longTime;
 			var y = json.rawEeg;
 			seriesRawEeg.addPoint([ x, y ], true, true);
-			//console.log(json);
+			console.log(json);
 		});
 		reqData("rawEeg");
 		
@@ -175,7 +175,7 @@ function connect() {
 			
 			seriesEsenseMed.addPoint([ x, med ], true, true);
 			seriesEsenseAtt.addPoint([ x, att ], true, true);
-			//console.log(json);
+			console.log(json);
 		});
 		reqData("eSense");
 	});

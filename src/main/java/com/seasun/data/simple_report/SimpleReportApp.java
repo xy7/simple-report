@@ -45,7 +45,7 @@ public class SimpleReportApp {
 		
 		for(EventType e:EventType.values()){
 			if(e == EventType.RAW_EEG)
-				jsonQueues.put(e, new ArrayBlockingQueue<>(4000));
+				jsonQueues.put(e, new ArrayBlockingQueue<>(40000));
 			else 
 				jsonQueues.put(e, new ArrayBlockingQueue<>(50));
 		}

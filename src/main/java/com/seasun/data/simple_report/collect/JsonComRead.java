@@ -142,8 +142,11 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 
 		boolean haveValidData = false;
 
-		String deviceId = data.getString("deviceId");
-		deviceId = deviceId.substring(0, deviceId.length() < 20 ? deviceId.length() : 20);
+		String deviceId = "74:E5:43:89:5F:F8";
+		if(data.containsKey("deviceId")){
+			deviceId = data.getString("deviceId");
+			deviceId = deviceId.substring(0, deviceId.length() < 20 ? deviceId.length() : 20);
+		}
 		String timeStamp = time.toString().replace("T", " ");
 
 		if (data.containsKey(EventType.RAW_EEG.getValue())) {
@@ -162,9 +165,8 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 					//log.info("put realTimeQueue: " + paramMap);
 					realtimeQueues.get(EventType.RAW_EEG).put(paramMap);
 				}
-				dbQueues.get(EventType.RAW_EEG).put(paramMap);
 				index++;
-				
+				dbQueues.get(EventType.RAW_EEG).put(paramMap);
 			}
 		}
 

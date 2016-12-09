@@ -66,7 +66,7 @@ public class JsonEventHandleDb implements JsonEventHandle{
 			long cost = System.currentTimeMillis() - begin;
 			num ++;
 			sum += cost;
-			log.debug("batchUpdate cost time: " + cost + " avg:" + sum/num + " num: " + num );
+			log.info("batchUpdate cost time: " + cost + " avg:" + sum/num + " num: " + num );
 			rawEegParams = new LinkedList<>();
 		}
 	

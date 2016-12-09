@@ -29,7 +29,8 @@ public class ComReadTest {
 	@Test
 	public void test() {
 		
-		String s = "{\"timestamp\":\"2016-07-14 05:42:57\",\"poorSignalLevel\":0,\"eSense\":{\"attention\":56,\"meditation\":7},\"eegPower\":{\"delta\":25523,\"theta\":12495,\"lowAlpha\":1360,\"highAlpha\":1335,\"lowBeta\":842,\"highBeta\":1812,\"lowGamma\":655,\"highGamma\":440,},\"deviceId\":\"74:E5:43:89:5F:F8\"}";
+		//String s = "{\"timestamp\":\"2016-07-14 05:42:57\",\"poorSignalLevel\":0,\"eSense\":{\"attention\":56,\"meditation\":7},\"eegPower\":{\"delta\":25523,\"theta\":12495,\"lowAlpha\":1360,\"highAlpha\":1335,\"lowBeta\":842,\"highBeta\":1812,\"lowGamma\":655,\"highGamma\":440,},\"deviceId\":\"74:E5:43:89:5F:F8\"}";
+		String s = "{\"timestamp\":\"2016-07-14 05:40:50\",\"GSR\":[3060,3055,3072,3070,3076,3056,3039,3054,3068,3064]}";
 		JSONObject obj = JSON.parseObject(s);
 		
 
