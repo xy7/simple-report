@@ -71,6 +71,16 @@ public class JsonEventHandleDb implements JsonEventHandle{
 		}
 	
 	}
+	
+	public void gsrEvent(Map<String, Object> paramMap) {
+		String sql = "insert into gsr(v0, v1, v2, v3, v4"
+				+ ", v5, v6, v7, v8, v9"
+				+ " , receive_time, device_id) values(:GSR0, :GSR1, :GSR2, :GSR3, :GSR4"
+				+ ", :GSR5, :GSR6, :GSR7, :GSR8, :GSR9"
+				+ ", :time, :deviceId)";
+		jdbc.update(sql, paramMap);
+		
+	}
 
 	@Override
 	public void handle(EventType eventtype, Map<String, Object> paramMap) {
@@ -89,6 +99,9 @@ public class JsonEventHandleDb implements JsonEventHandle{
 			break;
 		case RAW_EEG:
 			rawEegEvent(paramMap);
+			break;
+		case GSR:
+			gsrEvent(paramMap);
 			break;
 		default:
 			break;

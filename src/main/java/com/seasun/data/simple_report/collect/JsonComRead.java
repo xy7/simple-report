@@ -138,7 +138,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 		}
 	}
 
-	private void parsePacket(LocalDateTime time, JSONObject data) throws InterruptedException {
+	public void parsePacket(LocalDateTime time, JSONObject data) throws InterruptedException {
 
 		boolean haveValidData = false;
 
@@ -176,7 +176,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 			json.put("deviceId", deviceId);
 			json.put("time", timeStamp);
 			json.put(EventType.BLINK_STRENGTH.getValue(), data.getIntValue(EventType.BLINK_STRENGTH.getValue()));
-			realtimeQueues.get(EventType.BLINK_STRENGTH).put(json);
+			//realtimeQueues.get(EventType.BLINK_STRENGTH).put(json);
 			dbQueues.get(EventType.BLINK_STRENGTH).put(json);
 		}
 
@@ -194,18 +194,34 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 			JSONObject eegPower = data.getJSONObject(EventType.EEG_POWER.getValue());
 			eegPower.put("deviceId", deviceId);
 			eegPower.put("time", timeStamp);
-			realtimeQueues.get(EventType.EEG_POWER).put(eegPower);
+			//realtimeQueues.get(EventType.EEG_POWER).put(eegPower);
 			dbQueues.get(EventType.EEG_POWER).put(eegPower);
 		}
 
-		if (data.containsKey(EventType.POOR_SIGNAL_LEVEL)) {
+		if (data.containsKey(EventType.POOR_SIGNAL_LEVEL.getValue())) {
 			haveValidData = true;
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			json.put("time", timeStamp);
 			json.put(EventType.POOR_SIGNAL_LEVEL.getValue(), data.getIntValue(EventType.POOR_SIGNAL_LEVEL.getValue()));
-			realtimeQueues.get(EventType.POOR_SIGNAL_LEVEL).put(json);
+			//realtimeQueues.get(EventType.POOR_SIGNAL_LEVEL).put(json);
 			dbQueues.get(EventType.POOR_SIGNAL_LEVEL).put(json);
+
+		}
+		
+		if (data.containsKey(EventType.GSR.getValue())) {
+			haveValidData = true;
+			JSONObject json = new JSONObject();
+			json.put("deviceId", deviceId);
+			json.put("time", timeStamp);
+			JSONArray arr = data.getJSONArray(EventType.GSR.getValue());
+			for(int i=0; i<arr.size(); i++){
+				int val = arr.getIntValue(i);
+				json.put(EventType.GSR.getValue()+i, val);
+			}
+			
+			//realtimeQueues.get(EventType.GSR).put(json);
+			dbQueues.get(EventType.GSR).put(json);
 
 		}
 

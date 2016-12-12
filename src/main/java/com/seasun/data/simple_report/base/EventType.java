@@ -6,7 +6,8 @@ public enum EventType {
 	, EEG_POWER("eegPower")
 	, E_SENSE("eSense")
 	, BLINK_STRENGTH("blinkStrength")
-	, RAW_EEG("rawEeg");
+	, RAW_EEG("rawEeg")
+	, GSR("GSR"); //皮电数据
 	
 	private final String value; //与TGSP协议中的字段名保持一致
 	
