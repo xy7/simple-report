@@ -300,6 +300,8 @@ function esenseDymPic() {
 			title : {
 				text : 'Value'
 			},
+			max:100,
+			min:0,
 			plotLines : [ {
 				value : 0,
 				width : 1,
@@ -324,10 +326,10 @@ function esenseDymPic() {
 		},
 		series : [ {
 			name : 'attention',
-			data : zeroData(-30)
+			data : zeroData(-110)
 		}, {
 			name : 'meditation',
-			data : zeroData(-30)
+			data : zeroData(-110)
 		} ]
 	});
 }
