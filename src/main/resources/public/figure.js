@@ -324,10 +324,10 @@ function esenseDymPic() {
 		},
 		series : [ {
 			name : 'attention',
-			data : zeroData(-110)
+			data : zeroData(-30)
 		}, {
 			name : 'meditation',
-			data : zeroData(-110)
+			data : zeroData(-30)
 		} ]
 	});
 }

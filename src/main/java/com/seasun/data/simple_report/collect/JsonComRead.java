@@ -72,7 +72,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 				portId = (CommPortIdentifier) portList.nextElement();
 				if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {// 判断如果端口类型是串口
 					log.info(portId.getName());
-					if (portId.getName().equals("COM4") || portId.getName().equals("COM3")) {
+					if (portId.getName().equals("COM5") || portId.getName().equals("COM4") || portId.getName().equals("COM3")) {
 						log.info("bind " + portId.getName());
 						try {
 							SerialPort serialPort = (SerialPort) portId.open("SerialReader", 2000);
