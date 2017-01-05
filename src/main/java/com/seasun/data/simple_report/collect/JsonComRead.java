@@ -263,7 +263,14 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 				log.debug(ldt + " : " + userInput);
 
 				if (userInput.indexOf("{") > -1) {
-					JSONObject obj = JSON.parseObject(userInput);
+					JSONObject obj = null;
+					try{
+						obj = JSON.parseObject(userInput);
+					} catch (JSONException e) {
+						e.printStackTrace();
+						log.error("json parse error: " + e.toString());
+						continue;
+					}
 					monitorDelay(ldt, obj);
 
 					try {
@@ -274,14 +281,11 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 					} catch (InterruptedException e) {
 						log.error(e);
 					}
-
 				}
 			}
 		} catch (IOException e) {
-			//log.error("no data, device may close or disconnect - " + e.toString());
-		} catch (JSONException e) {
-			log.error("json parse error - " + e.toString());
-		}
+			log.error("no data, device may close or disconnect - " + e.toString());
+		} 
 	}
 	
 	public Thread startParseProcessThread(){

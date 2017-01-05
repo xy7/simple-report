@@ -184,7 +184,10 @@ function connect() {
 function disconnect() {
 	console.log("disconnect");
 	if (stompClient != null) {
-		stompClient.disconnect();
+		stompClient.disconnect(function(){
+			console.log("stompClient disconnected");
+			alert("stompClient disconnected");
+			});
 	}
 	setConnected(false);
 	console.log("Disconnected");
