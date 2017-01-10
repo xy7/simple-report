@@ -66,10 +66,13 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 		Thread daemon = null;
 		Thread parseDaemon = null;
 		while (!bindSucess) {
-
+			log.info("get port list,begin");
 			portList = CommPortIdentifier.getPortIdentifiers(); // 得到当前连接上的端口
+			log.info("get port list,end.");			
 			while (portList.hasMoreElements()) {
+				log.info("port list hasMoreElements,");
 				portId = (CommPortIdentifier) portList.nextElement();
+				log.info("get next,");
 				if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {// 判断如果端口类型是串口
 					log.info(portId.getName());
 					if (portId.getName().equals("COM5") || portId.getName().equals("COM4") || portId.getName().equals("COM3")) {
@@ -96,6 +99,7 @@ public class JsonComRead implements SerialPortEventListener, Runnable {
 					}
 				}
 			}
+			log.info("port list scan finish.");
 
 			try {
 				Thread.sleep(1000);
